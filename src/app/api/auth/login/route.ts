@@ -1,3 +1,47 @@
-export function GET() {
-  return new Response(null, { status: 501 });
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { verifyPassword, signSession, setSessionCookie } from "@/core/auth";
+
+const body = z.object({
+  slug: z.string().min(1),
+  identifier: z.string().min(1),
+  password: z.string().min(1),
+});
+
+const fail = () =>
+  NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+
+export async function POST(req: Request) {
+  const parsed = body.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+  const { slug, identifier, password } = parsed.data;
+
+  const school = await prisma.school.findUnique({ where: { slug } });
+  if (!school) return fail();
+  if (school.status !== "ACTIVE") {
+    return NextResponse.json({ error: "School portal unavailable" }, { status: 403 });
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      schoolId: school.id,
+      isActive: true,
+      OR: [{ email: identifier }, { phone: identifier }, { admissionNumber: identifier }],
+    },
+  });
+  if (!user || !(await verifyPassword(password, user.passwordHash))) return fail();
+
+  const now = new Date();
+  await Promise.all([
+    prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: now } }),
+    prisma.school.update({ where: { id: school.id }, data: { lastLoginAt: now } }),
+  ]);
+
+  await setSessionCookie(
+    await signSession({ userId: user.id, schoolId: school.id, role: user.role }),
+  );
+  return NextResponse.json({ role: user.role });
 }
