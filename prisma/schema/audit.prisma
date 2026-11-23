@@ -1,0 +1,53 @@
+model ImpersonationSession {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+
+  adminId      String  @map("admin_id")
+  admin        User    @relation("ImpersonationAdmin", fields: [adminId], references: [id], onDelete: Restrict)
+  targetUserId String? @map("target_user_id")
+  targetUser   User?   @relation("ImpersonationTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  reason    String
+  ipAddress String?   @map("ip_address")
+  startedAt DateTime  @default(now()) @map("started_at")
+  endedAt   DateTime? @map("ended_at")
+
+  auditLogs AuditLog[]
+
+  @@index([schoolId, startedAt])
+  @@index([adminId, startedAt])
+  @@map("impersonation_sessions")
+}
+
+model AuditLog {
+  id       String  @id @default(cuid())
+  schoolId String? @map("school_id")
+  school   School? @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+
+  actorId                String?               @map("actor_id")
+  actor                  User?                 @relation("AuditActor", fields: [actorId], references: [id], onDelete: Restrict)
+  actorRole              Role?                 @map("actor_role")
+  impersonationSessionId String?               @map("impersonation_session_id")
+  impersonationSession   ImpersonationSession? @relation(fields: [impersonationSessionId], references: [id], onDelete: Restrict)
+
+  action     String
+  entityType String? @map("entity_type")
+  entityId   String? @map("entity_id")
+  metadata   Json?
+  ipAddress  String? @map("ip_address")
+  userAgent  String? @map("user_agent")
+
+  sequence Int
+  prevHash String? @map("prev_hash")
+  hash     String
+
+  createdAt DateTime @default(now())
+
+  @@unique([schoolId, sequence])
+  @@index([schoolId, createdAt])
+  @@index([schoolId, actorId, createdAt])
+  @@index([schoolId, action])
+  @@index([schoolId, entityType, entityId])
+  @@map("audit_logs")
+}

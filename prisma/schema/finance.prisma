@@ -1,0 +1,216 @@
+enum FeeAudience {
+  ALL
+  BOARDERS
+  DAY_SCHOLARS
+}
+
+model FeeItem {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  name      String
+  audience  FeeAudience @default(ALL)
+  isActive  Boolean     @default(true) @map("is_active")
+  sortOrder Int         @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now())
+
+  structureLines FeeStructureLine[]
+  invoiceLines   InvoiceLine[]
+
+  @@unique([schoolId, name])
+  @@map("fee_items")
+}
+
+model FeeStructure {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  termId  String      @map("term_id")
+  term    Term        @relation(fields: [termId], references: [id], onDelete: Restrict)
+  classId String      @map("class_id")
+  class   SchoolClass @relation(fields: [classId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lines FeeStructureLine[]
+
+  @@unique([schoolId, termId, classId])
+  @@index([schoolId, termId])
+  @@map("fee_structures")
+}
+
+model FeeStructureLine {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  structureId String       @map("structure_id")
+  structure   FeeStructure @relation(fields: [structureId], references: [id], onDelete: Cascade)
+  feeItemId   String       @map("fee_item_id")
+  feeItem     FeeItem      @relation(fields: [feeItemId], references: [id], onDelete: Restrict)
+
+  amount Int
+
+  @@unique([structureId, feeItemId])
+  @@index([schoolId, structureId])
+  @@map("fee_structure_lines")
+}
+
+model StudentFeeProfile {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  studentId String @map("student_id")
+  student   User   @relation("FeeProfileStudent", fields: [studentId], references: [id], onDelete: Cascade)
+
+  isBoarder Boolean @default(false) @map("is_boarder")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, studentId])
+  @@map("student_fee_profiles")
+}
+
+model Invoice {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  studentId String      @map("student_id")
+  student   User        @relation("InvoiceStudent", fields: [studentId], references: [id], onDelete: Restrict)
+  termId    String      @map("term_id")
+  term      Term        @relation(fields: [termId], references: [id], onDelete: Restrict)
+  classId   String      @map("class_id")
+  class     SchoolClass @relation(fields: [classId], references: [id], onDelete: Restrict)
+
+  totalAmount Int @map("total_amount")
+  amountPaid  Int @default(0) @map("amount_paid")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lines    InvoiceLine[]
+  payments Payment[]
+
+  @@unique([schoolId, studentId, termId])
+  @@index([schoolId, termId])
+  @@index([schoolId, studentId])
+  @@map("invoices")
+}
+
+model InvoiceLine {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  invoiceId String   @map("invoice_id")
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  feeItemId String?  @map("fee_item_id")
+  feeItem   FeeItem? @relation(fields: [feeItemId], references: [id], onDelete: SetNull)
+
+  description String
+  amount      Int
+
+  @@index([schoolId, invoiceId])
+  @@map("invoice_lines")
+}
+
+model Payment {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  invoiceId    String  @map("invoice_id")
+  invoice      Invoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  studentId    String  @map("student_id")
+  student      User    @relation("PaymentStudent", fields: [studentId], references: [id], onDelete: Restrict)
+  recordedById String? @map("recorded_by_id")
+  recordedBy   User?   @relation("PaymentRecorder", fields: [recordedById], references: [id], onDelete: Restrict)
+
+  amount          Int
+  method          PaymentMethod
+  receiptNumber   String        @map("receipt_number")
+  transactionCode String?       @map("transaction_code")
+  payerPhone      String?       @map("payer_phone")
+  reference       String?
+  note            String?
+  paidOn          DateTime      @map("paid_on") @db.Date
+
+  createdAt DateTime @default(now())
+
+  @@unique([schoolId, receiptNumber])
+  @@unique([schoolId, transactionCode])
+  @@index([schoolId, invoiceId])
+  @@index([schoolId, studentId])
+  @@index([schoolId, method, paidOn])
+  @@map("payments")
+}
+
+model Supplier {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  name     String
+  phone    String?
+  email    String?
+  isActive Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  expenses Expense[]
+  payments SupplierPayment[]
+
+  @@unique([schoolId, name])
+  @@map("suppliers")
+}
+
+model Expense {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  supplierId   String?   @map("supplier_id")
+  supplier     Supplier? @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  recordedById String    @map("recorded_by_id")
+  recordedBy   User      @relation("ExpenseRecorder", fields: [recordedById], references: [id], onDelete: Restrict)
+
+  category    String
+  description String
+  amount      Int
+  incurredOn  DateTime @map("incurred_on") @db.Date
+
+  createdAt DateTime @default(now())
+
+  @@index([schoolId, incurredOn])
+  @@index([schoolId, supplierId])
+  @@map("expenses")
+}
+
+model SupplierPayment {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  supplierId   String   @map("supplier_id")
+  supplier     Supplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  recordedById String   @map("recorded_by_id")
+  recordedBy   User     @relation("SupplierPaymentRecorder", fields: [recordedById], references: [id], onDelete: Restrict)
+
+  amount    Int
+  method    PaymentMethod
+  reference String?
+  paidOn    DateTime      @map("paid_on") @db.Date
+
+  createdAt DateTime @default(now())
+
+  @@index([schoolId, supplierId])
+  @@map("supplier_payments")
+}

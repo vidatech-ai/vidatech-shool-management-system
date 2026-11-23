@@ -1,0 +1,75 @@
+model School {
+  id            String           @id @default(cuid())
+  name          String
+  slug          String           @unique
+  status        TenantStatus     @default(PENDING_PAYMENT)
+  county        String?
+  email         String
+  phone         String?
+  enabledStages EducationStage[]
+
+  logoUrl        String?
+  motto          String?
+  primaryColor   String  @default("#1d4ed8")
+  secondaryColor String  @default("#0f172a")
+
+  subscriptionExpiresAt DateTime?
+  suspendedAt           DateTime?
+  suspendedReason       String?
+  lastLoginAt           DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users                  User[]
+  parentStudentLinks     ParentStudentLink[]
+  classes                SchoolClass[]
+  streams                Stream[]
+  subjects               Subject[]
+  teacherAssignments     TeacherAssignment[]
+  studentEnrollments     StudentEnrollment[]
+  studentAttendances     StudentAttendance[]
+  staffAttendances       StaffAttendance[]
+  leaveRequests          LeaveRequest[]
+  impersonationSessions  ImpersonationSession[]
+  auditLogs              AuditLog[]
+  conductRecords         ConductRecord[]
+  feeItems               FeeItem[]
+  feeStructures          FeeStructure[]
+  feeStructureLines      FeeStructureLine[]
+  studentFeeProfiles     StudentFeeProfile[]
+  invoices               Invoice[]
+  invoiceLines           InvoiceLine[]
+  payments               Payment[]
+  suppliers              Supplier[]
+  expenses               Expense[]
+  supplierPayments       SupplierPayment[]
+  gradingScales          GradingScale[]
+  gradeBands             GradeBand[]
+  assessmentTypes        AssessmentType[]
+  assessments            Assessment[]
+  assessmentScores       AssessmentScore[]
+  messages               Message[]
+  messageRecipients      MessageRecipient[]
+  subscriptionPayments   SubscriptionPayment[]
+  subscriptionExtensions SubscriptionExtension[]
+  terms                  Term[]
+  timeSlots              TimeSlot[]
+  timetableLessons       TimetableLesson[]
+  dutyShifts             DutyShift[]
+  calendarEvents         CalendarEvent[]
+  profile                SchoolProfile?
+  heroBanners            HeroBanner[]
+  leadershipProfiles     LeadershipProfile[]
+  galleryAlbums          GalleryAlbum[]
+  galleryItems           GalleryItem[]
+  newsPosts              NewsPost[]
+  jobVacancies           JobVacancy[]
+  admissionRequirements  AdmissionRequirement[]
+  downloadableDocuments  DownloadableDocument[]
+  inquiries              Inquiry[]
+
+  @@index([status])
+  @@index([subscriptionExpiresAt])
+  @@map("schools")
+}

@@ -1,0 +1,85 @@
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model StudentAttendance {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  studentId  String           @map("student_id")
+  student    User             @relation("StudentAttendance", fields: [studentId], references: [id], onDelete: Cascade)
+  classId    String           @map("class_id")
+  class      SchoolClass      @relation(fields: [classId], references: [id], onDelete: Restrict)
+  markedById String           @map("marked_by_id")
+  markedBy   User             @relation("AttendanceMarker", fields: [markedById], references: [id], onDelete: Restrict)
+  lessonId   String?          @map("lesson_id")
+  lesson     TimetableLesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+
+  date   DateTime         @db.Date
+  status AttendanceStatus
+  note   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, date, lessonId])
+  @@index([schoolId, date])
+  @@index([schoolId, classId, date])
+  @@index([schoolId, lessonId, date])
+  @@map("student_attendance")
+}
+
+model StaffAttendance {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  staffId    String @map("staff_id")
+  staff      User   @relation("StaffAttendance", fields: [staffId], references: [id], onDelete: Cascade)
+  markedById String @map("marked_by_id")
+  markedBy   User   @relation("StaffAttendanceMarker", fields: [markedById], references: [id], onDelete: Restrict)
+
+  date   DateTime         @db.Date
+  status AttendanceStatus
+  note   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([staffId, date])
+  @@index([schoolId, date])
+  @@map("staff_attendance")
+}
+
+model LeaveRequest {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  requesterId String  @map("requester_id")
+  requester   User    @relation("LeaveRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  reviewerId  String? @map("reviewer_id")
+  reviewer    User?   @relation("LeaveReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  startDate  DateTime    @db.Date
+  endDate    DateTime    @db.Date
+  reason     String
+  status     LeaveStatus @default(PENDING)
+  reviewedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId, status])
+  @@index([schoolId, requesterId])
+  @@map("leave_requests")
+}

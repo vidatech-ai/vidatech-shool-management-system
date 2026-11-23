@@ -1,0 +1,232 @@
+enum GalleryItemType {
+  IMAGE
+  VIDEO
+}
+
+enum NewsCategory {
+  NEWS
+  ACHIEVEMENT
+  EXAM_RESULT
+  EVENT
+}
+
+enum DocumentKind {
+  ADMISSION_FORM
+  FEE_STRUCTURE
+  OTHER
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  CLOSED
+}
+
+enum LeadershipGroup {
+  PRINCIPAL_TEAM
+  BOARD
+}
+
+model SchoolProfile {
+  id       String @id @default(cuid())
+  schoolId String @unique @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  foundedYear       Int?    @map("founded_year")
+  history           String?
+  vision            String?
+  mission           String?
+  coreValues        String? @map("core_values")
+  principalName     String? @map("principal_name")
+  principalMessage  String? @map("principal_message")
+  principalPhotoUrl String? @map("principal_photo_url")
+  address           String?
+  mapUrl            String? @map("map_url")
+
+  updatedAt DateTime @updatedAt
+
+  @@map("school_profiles")
+}
+
+model HeroBanner {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  imageUrl    String  @map("image_url")
+  headline    String?
+  subtext     String?
+  linkUrl     String? @map("link_url")
+  sortOrder   Int     @default(0) @map("sort_order")
+  isPublished Boolean @default(true) @map("is_published")
+
+  createdAt DateTime @default(now())
+
+  @@index([schoolId, isPublished, sortOrder])
+  @@map("hero_banners")
+}
+
+model LeadershipProfile {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  group       LeadershipGroup
+  name        String
+  title       String
+  bio         String?
+  photoUrl    String?         @map("photo_url")
+  sortOrder   Int             @default(0) @map("sort_order")
+  isPublished Boolean         @default(true) @map("is_published")
+
+  createdAt DateTime @default(now())
+
+  @@index([schoolId, group, sortOrder])
+  @@map("leadership_profiles")
+}
+
+model GalleryAlbum {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  title       String
+  category    String?
+  description String?
+  coverUrl    String? @map("cover_url")
+  sortOrder   Int     @default(0) @map("sort_order")
+  isPublished Boolean @default(true) @map("is_published")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items GalleryItem[]
+
+  @@index([schoolId, isPublished, sortOrder])
+  @@map("gallery_albums")
+}
+
+model GalleryItem {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  albumId String       @map("album_id")
+  album   GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  type      GalleryItemType @default(IMAGE)
+  url       String
+  caption   String?
+  sortOrder Int             @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now())
+
+  @@index([schoolId, albumId, sortOrder])
+  @@map("gallery_items")
+}
+
+model NewsPost {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  authorId String @map("author_id")
+  author   User   @relation("NewsAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+
+  category    NewsCategory @default(NEWS)
+  slug        String
+  title       String
+  summary     String?
+  body        String
+  coverUrl    String?      @map("cover_url")
+  isPublished Boolean      @default(false) @map("is_published")
+  publishedAt DateTime?    @map("published_at")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, slug])
+  @@index([schoolId, isPublished, publishedAt])
+  @@index([schoolId, category])
+  @@map("news_posts")
+}
+
+model JobVacancy {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  createdById String @map("created_by_id")
+  createdBy   User   @relation("VacancyCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  title          String
+  department     String?
+  employmentType String?   @map("employment_type")
+  description    String
+  qualifications String?
+  howToApply     String?   @map("how_to_apply")
+  deadline       DateTime? @db.Date
+  isPublished    Boolean   @default(false) @map("is_published")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId, isPublished, deadline])
+  @@map("job_vacancies")
+}
+
+model AdmissionRequirement {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  stage     EducationStage
+  title     String
+  details   String?
+  sortOrder Int            @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now())
+
+  @@index([schoolId, stage, sortOrder])
+  @@map("admission_requirements")
+}
+
+model DownloadableDocument {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  kind        DocumentKind    @default(OTHER)
+  stage       EducationStage?
+  title       String
+  fileUrl     String          @map("file_url")
+  isPublished Boolean         @default(true) @map("is_published")
+
+  createdAt DateTime @default(now())
+
+  @@index([schoolId, kind, isPublished])
+  @@map("downloadable_documents")
+}
+
+model Inquiry {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  handledById String? @map("handled_by_id")
+  handledBy   User?   @relation("InquiryHandler", fields: [handledById], references: [id], onDelete: SetNull)
+
+  parentName String          @map("parent_name")
+  email      String?
+  phone      String
+  childName  String?         @map("child_name")
+  stage      EducationStage?
+  message    String
+  status     InquiryStatus   @default(NEW)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId, status, createdAt])
+  @@map("inquiries")
+}

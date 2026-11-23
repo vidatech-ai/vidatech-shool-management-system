@@ -1,0 +1,105 @@
+enum CalendarEventType {
+  TERM
+  EXAM_WINDOW
+  BREAK
+  EVENT
+}
+
+model TimeSlot {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  name        String
+  startMinute Int     @map("start_minute")
+  endMinute   Int     @map("end_minute")
+  sortOrder   Int     @default(0) @map("sort_order")
+  isBreak     Boolean @default(false) @map("is_break")
+
+  createdAt DateTime @default(now())
+
+  lessons TimetableLesson[]
+
+  @@unique([schoolId, name])
+  @@index([schoolId, sortOrder])
+  @@map("time_slots")
+}
+
+model TimetableLesson {
+  studentAttendanceRecords StudentAttendance[]
+  id                       String              @id @default(cuid())
+  schoolId                 String              @map("school_id")
+  school                   School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  termId                   String              @map("term_id")
+  term                     Term                @relation(fields: [termId], references: [id], onDelete: Restrict)
+
+  slotId    String      @map("slot_id")
+  slot      TimeSlot    @relation(fields: [slotId], references: [id], onDelete: Restrict)
+  classId   String      @map("class_id")
+  class     SchoolClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  streamId  String?     @map("stream_id")
+  stream    Stream?     @relation(fields: [streamId], references: [id], onDelete: SetNull)
+  subjectId String      @map("subject_id")
+  subject   Subject     @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  teacherId String      @map("teacher_id")
+  teacher   User        @relation("LessonTeacher", fields: [teacherId], references: [id], onDelete: Restrict)
+
+  dayOfWeek Int     @map("day_of_week")
+  room      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, teacherId, termId, dayOfWeek, slotId])
+  @@index([schoolId, classId, termId, dayOfWeek])
+  @@index([schoolId, teacherId, termId])
+  @@map("timetable_lessons")
+}
+
+model DutyShift {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  staffId     String @map("staff_id")
+  staff       User   @relation("DutyStaff", fields: [staffId], references: [id], onDelete: Cascade)
+  createdById String @map("created_by_id")
+  createdBy   User   @relation("DutyCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  weekStart   DateTime @map("week_start") @db.Date
+  dayOfWeek   Int      @map("day_of_week")
+  startMinute Int      @map("start_minute")
+  endMinute   Int      @map("end_minute")
+  workstation String?
+  task        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId, weekStart])
+  @@index([schoolId, staffId, weekStart])
+  @@map("duty_shifts")
+}
+
+model CalendarEvent {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  createdById String @map("created_by_id")
+  createdBy   User   @relation("CalendarCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  type        CalendarEventType
+  title       String
+  description String?
+  startDate   DateTime          @map("start_date") @db.Date
+  endDate     DateTime          @map("end_date") @db.Date
+  isPublic    Boolean           @default(false) @map("is_public")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId, startDate])
+  @@index([schoolId, type])
+  @@map("calendar_events")
+}

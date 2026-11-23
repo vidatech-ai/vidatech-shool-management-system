@@ -1,0 +1,36 @@
+model SubscriptionPayment {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  reference   String                    @unique
+  amountMinor Int
+  currency    String                    @default("KES")
+  status      SubscriptionPaymentStatus @default(PENDING)
+  periodDays  Int
+  paidAt      DateTime?
+  rawPayload  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId, status])
+  @@index([schoolId, createdAt])
+  @@map("subscription_payments")
+}
+
+model SubscriptionExtension {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  days        Int
+  reason      String
+  grantedById String @map("granted_by_id")
+  grantedBy   User   @relation("ExtensionGrantor", fields: [grantedById], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+
+  @@index([schoolId, createdAt])
+  @@map("subscription_extensions")
+}

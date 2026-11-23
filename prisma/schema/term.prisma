@@ -1,0 +1,23 @@
+model Term {
+  assessments      Assessment[]
+  timetableLessons TimetableLesson[]
+  feeStructureList FeeStructure[]
+  invoiceList      Invoice[]
+  id               String            @id @default(cuid())
+  schoolId         String            @map("school_id")
+  school           School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  academicYear Int      @map("academic_year")
+  number       Int
+  name         String
+  startDate    DateTime @map("start_date") @db.Date
+  endDate      DateTime @map("end_date") @db.Date
+  isCurrent    Boolean  @default(false) @map("is_current")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, academicYear, number])
+  @@index([schoolId, isCurrent])
+  @@map("terms")
+}

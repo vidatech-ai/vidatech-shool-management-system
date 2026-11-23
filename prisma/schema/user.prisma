@@ -1,0 +1,83 @@
+model User {
+  grantedExtensions SubscriptionExtension[] @relation("ExtensionGrantor")
+  id                String                  @id @default(cuid())
+  schoolId          String?                 @map("school_id")
+  school            School?                 @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  role            Role
+  firstName       String
+  lastName        String
+  email           String?
+  phone           String?
+  admissionNumber String? @map("admission_number")
+  passwordHash    String  @map("password_hash")
+  isActive        Boolean @default(true)
+
+  twoFactorEnabled Boolean   @default(false)
+  twoFactorSecret  String?
+  lastLoginAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parentLinks  ParentStudentLink[] @relation("ParentLinks")
+  studentLinks ParentStudentLink[] @relation("StudentLinks")
+
+  teacherAssignments       TeacherAssignment[]    @relation("TeacherAssignments")
+  studentEnrollments       StudentEnrollment[]    @relation("StudentEnrollments")
+  studentAttendances       StudentAttendance[]    @relation("StudentAttendance")
+  markedStudentAttendances StudentAttendance[]    @relation("AttendanceMarker")
+  staffAttendances         StaffAttendance[]      @relation("StaffAttendance")
+  markedStaffAttendances   StaffAttendance[]      @relation("StaffAttendanceMarker")
+  leaveRequests            LeaveRequest[]         @relation("LeaveRequester")
+  reviewedLeaveRequests    LeaveRequest[]         @relation("LeaveReviewer")
+  impersonationSessions    ImpersonationSession[] @relation("ImpersonationAdmin")
+  impersonatedSessions     ImpersonationSession[] @relation("ImpersonationTarget")
+  auditLogs                AuditLog[]             @relation("AuditActor")
+  conductRecords           ConductRecord[]        @relation("ConductStudent")
+  reportedConductRecords   ConductRecord[]        @relation("ConductReporter")
+  feeProfiles              StudentFeeProfile[]    @relation("FeeProfileStudent")
+  invoices                 Invoice[]              @relation("InvoiceStudent")
+  payments                 Payment[]              @relation("PaymentStudent")
+  recordedPayments         Payment[]              @relation("PaymentRecorder")
+  recordedExpenses         Expense[]              @relation("ExpenseRecorder")
+  recordedSupplierPayments SupplierPayment[]      @relation("SupplierPaymentRecorder")
+  createdAssessments       Assessment[]           @relation("AssessmentCreator")
+  assessmentScores         AssessmentScore[]      @relation("ScoreStudent")
+  recordedScores           AssessmentScore[]      @relation("ScoreRecorder")
+  overriddenScores         AssessmentScore[]      @relation("ScoreOverrider")
+  sentMessages             Message[]              @relation("MessageSender")
+  receivedMessages         MessageRecipient[]     @relation("MessageRecipientUser")
+  platformBroadcasts       PlatformBroadcast[]    @relation("BroadcastCreator")
+  taughtLessons            TimetableLesson[]      @relation("LessonTeacher")
+  dutyShifts               DutyShift[]            @relation("DutyStaff")
+  createdDutyShifts        DutyShift[]            @relation("DutyCreator")
+  createdCalendarEvents    CalendarEvent[]        @relation("CalendarCreator")
+  newsPosts                NewsPost[]             @relation("NewsAuthor")
+  jobVacancies             JobVacancy[]           @relation("VacancyCreator")
+  handledInquiries         Inquiry[]              @relation("InquiryHandler")
+
+  @@unique([schoolId, email])
+  @@unique([schoolId, phone])
+  @@unique([schoolId, admissionNumber])
+  @@index([schoolId, role])
+  @@map("users")
+}
+
+model ParentStudentLink {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  parentId  String @map("parent_id")
+  parent    User   @relation("ParentLinks", fields: [parentId], references: [id], onDelete: Cascade)
+  studentId String @map("student_id")
+  student   User   @relation("StudentLinks", fields: [studentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([parentId, studentId])
+  @@index([schoolId, parentId])
+  @@index([schoolId, studentId])
+  @@map("parent_student_links")
+}

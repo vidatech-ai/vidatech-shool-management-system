@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+build/
+next-env.d.ts
+
+# Environment files (secrets). Only the example template is tracked.
+.env
+.env.*
+!.env.example
+
+# Logs and caches
+*.log
+npm-debug.log*
+*.tsbuildinfo
+coverage/
+
+# OS and editor files
+.DS_Store
+.idea/
+.vscode/
+
+# Deployment
+.vercel/

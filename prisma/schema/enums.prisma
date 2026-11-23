@@ -1,0 +1,36 @@
+enum Role {
+  MASTER_ADMIN
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+  ACCOUNTANT
+  SUPPORT_STAFF
+}
+
+enum TenantStatus {
+  PENDING_PAYMENT
+  ACTIVE
+  SUSPENDED
+}
+
+enum SubscriptionPaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum EducationStage {
+  ECDE
+  LOWER_PRIMARY
+  UPPER_PRIMARY
+  JUNIOR_SCHOOL
+  SENIOR_SCHOOL
+  SECONDARY_844
+}
+
+enum PaymentMethod {
+  CASH
+  MPESA
+  BANK
+}

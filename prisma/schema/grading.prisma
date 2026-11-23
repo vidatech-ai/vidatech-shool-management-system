@@ -1,0 +1,130 @@
+enum GradingCurriculum {
+  CBC
+  LEGACY_844
+}
+
+model GradingScale {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  name       String
+  curriculum GradingCurriculum
+  subjectId  String?           @map("subject_id")
+  subject    Subject?          @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  isDefault  Boolean           @default(false) @map("is_default")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bands  GradeBand[]
+  scores AssessmentScore[]
+
+  @@unique([schoolId, name])
+  @@index([schoolId, curriculum, isDefault])
+  @@map("grading_scales")
+}
+
+model GradeBand {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  scaleId String       @map("scale_id")
+  scale   GradingScale @relation(fields: [scaleId], references: [id], onDelete: Cascade)
+
+  code       String
+  minPercent Int     @map("min_percent")
+  maxPercent Int     @map("max_percent")
+  points     Int
+  descriptor String?
+  sortOrder  Int     @default(0) @map("sort_order")
+
+  @@unique([scaleId, code])
+  @@index([schoolId, scaleId])
+  @@map("grade_bands")
+}
+
+model AssessmentType {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  name          String
+  weightPercent Int?   @map("weight_percent")
+
+  createdAt DateTime @default(now())
+
+  assessments Assessment[]
+
+  @@unique([schoolId, name])
+  @@map("assessment_types")
+}
+
+model Assessment {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  termId   String @map("term_id")
+  term     Term   @relation(fields: [termId], references: [id], onDelete: Restrict)
+
+  typeId      String         @map("type_id")
+  type        AssessmentType @relation(fields: [typeId], references: [id], onDelete: Restrict)
+  subjectId   String         @map("subject_id")
+  subject     Subject        @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  classId     String         @map("class_id")
+  class       SchoolClass    @relation(fields: [classId], references: [id], onDelete: Restrict)
+  streamId    String?        @map("stream_id")
+  stream      Stream?        @relation(fields: [streamId], references: [id], onDelete: SetNull)
+  createdById String         @map("created_by_id")
+  createdBy   User           @relation("AssessmentCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  title    String
+  maxScore Int       @default(100) @map("max_score")
+  heldOn   DateTime? @map("held_on") @db.Date
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  scores AssessmentScore[]
+
+  @@index([schoolId, classId, subjectId, termId])
+  @@index([schoolId, createdById])
+  @@map("assessments")
+}
+
+model AssessmentScore {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  assessmentId String        @map("assessment_id")
+  assessment   Assessment    @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  studentId    String        @map("student_id")
+  student      User          @relation("ScoreStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  recordedById String        @map("recorded_by_id")
+  recordedBy   User          @relation("ScoreRecorder", fields: [recordedById], references: [id], onDelete: Restrict)
+  scaleId      String?       @map("scale_id")
+  scale        GradingScale? @relation(fields: [scaleId], references: [id], onDelete: SetNull)
+
+  score         Float
+  percent       Float
+  gradeCode     String? @map("grade_code")
+  points        Int?
+  autoGradeCode String? @map("auto_grade_code")
+  autoPoints    Int?    @map("auto_points")
+
+  isOverridden   Boolean   @default(false) @map("is_overridden")
+  overrideReason String?   @map("override_reason")
+  overriddenById String?   @map("overridden_by_id")
+  overriddenBy   User?     @relation("ScoreOverrider", fields: [overriddenById], references: [id], onDelete: SetNull)
+  overriddenAt   DateTime? @map("overridden_at")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([assessmentId, studentId])
+  @@index([schoolId, studentId])
+  @@index([schoolId, assessmentId])
+  @@map("assessment_scores")
+}

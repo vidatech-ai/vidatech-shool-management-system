@@ -1,0 +1,31 @@
+enum ConductType {
+  MISCONDUCT
+  COMMENDATION
+}
+
+model ConductRecord {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  studentId    String      @map("student_id")
+  student      User        @relation("ConductStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  classId      String      @map("class_id")
+  class        SchoolClass @relation(fields: [classId], references: [id], onDelete: Restrict)
+  reportedById String      @map("reported_by_id")
+  reportedBy   User        @relation("ConductReporter", fields: [reportedById], references: [id], onDelete: Restrict)
+
+  type       ConductType
+  title      String
+  details    String?
+  severity   Int?
+  escalated  Boolean     @default(false)
+  occurredOn DateTime    @map("occurred_on") @db.Date
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId, studentId, occurredOn])
+  @@index([schoolId, type, escalated])
+  @@map("conduct_records")
+}
