@@ -11,6 +11,7 @@ const envSchema = z.object({
 
   NEXT_PUBLIC_APP_URL: z.string().min(1),
   NEXT_PUBLIC_ROOT_DOMAIN: z.string().min(1),
+  NEXT_PUBLIC_ROUTING_MODE: z.enum(["PATH", "SUBDOMAIN"]).default("PATH"),
 
   SUBSCRIPTION_DAYS: z.coerce.number().int().positive().default(120),
   GRACE_HOURS: z.coerce.number().int().positive().default(48),
