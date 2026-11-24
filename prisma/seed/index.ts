@@ -42,6 +42,47 @@ async function upsertUser(
   });
 }
 
+async function seedMasterAdmin() {
+  const email = process.env.HQ_ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.HQ_ADMIN_PASSWORD;
+
+  if (!email || !password) {
+    console.log("HQ master admin skipped: set HQ_ADMIN_EMAIL and HQ_ADMIN_PASSWORD in .env");
+    return;
+  }
+  if (password.length < 10) {
+    throw new Error("HQ_ADMIN_PASSWORD must be at least 10 characters");
+  }
+
+  const passwordHash = await hash(password, 12);
+  const existing = await prisma.user.findFirst({
+    where: {
+      role: "MASTER_ADMIN",
+      schoolId: null,
+      email: { equals: email, mode: "insensitive" },
+    },
+  });
+
+  if (existing) {
+    await prisma.user.update({
+      where: { id: existing.id },
+      data: { passwordHash, isActive: true, email },
+    });
+  } else {
+    await prisma.user.create({
+      data: {
+        schoolId: null,
+        role: "MASTER_ADMIN",
+        firstName: "VidaTech",
+        lastName: "HQ Admin",
+        email,
+        passwordHash,
+      },
+    });
+  }
+  console.log("Seeded HQ master admin:", email);
+}
+
 async function main() {
   const expires = new Date();
   expires.setDate(expires.getDate() + 30);
@@ -115,6 +156,8 @@ async function main() {
       password: STUDENT_PASSWORD,
     },
   );
+
+  await seedMasterAdmin();
 
   console.log("Seeded school:", school.slug, "status:", school.status);
 }

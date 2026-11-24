@@ -1,0 +1,26 @@
+.page {
+  min-height: 100dvh;
+  padding: 32px 20px;
+  color: #fff;
+  font-family: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: linear-gradient(135deg, #050b24 0%, #0a1a5c 60%, #081444 100%);
+}
+.wrap { max-width: 960px; margin: 0 auto; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { font-size: 22px; font-weight: 700; color: #a5f3fc; }
+.who { font-size: 13px; opacity: 0.8; }
+.nav { display: flex; gap: 10px; margin: 22px 0; flex-wrap: wrap; }
+.nav a {
+  padding: 8px 16px; border-radius: 999px; font-size: 14px; color: #fff; text-decoration: none;
+  background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(34, 211, 238, 0.35);
+}
+.nav a:hover { background: rgba(34, 211, 238, 0.18); }
+.title { margin: 0 0 16px; font-size: 28px; font-weight: 700; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.stat {
+  padding: 20px; border-radius: 18px;
+  background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(34, 211, 238, 0.25);
+}
+.statValue { font-size: 34px; font-weight: 700; color: #67e8f9; }
+.statLabel { margin-top: 4px; font-size: 13px; opacity: 0.8; }
+.note { margin-top: 22px; font-size: 14px; opacity: 0.8; }
