@@ -18,6 +18,10 @@ model School {
   suspendedReason       String?
   lastLoginAt           DateTime?
 
+  isTrial     Boolean @default(false)
+  smsBalance  Int     @default(0)
+  maxStudents Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
