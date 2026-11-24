@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import type { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "./verify-session";
+import { env } from "@/config/env";
+import { getAccessMode } from "@/core/subscription/access-mode";
 
 const HOME: Partial<Record<Role, string>> = {
   ADMIN: "/dashboard/admin",
@@ -27,10 +29,15 @@ export async function guardDashboard(allowed?: Role[]) {
 
   const school = await prisma.school.findUnique({
     where: { slug },
-    select: { id: true, status: true },
+    select: { id: true, status: true, subscriptionExpiresAt: true },
   });
   if (!school || school.id !== session.schoolId) redirect(`${b}/login`);
-  if (school.status !== "ACTIVE") redirect(`${b}/suspended`);
+  const mode = getAccessMode(school, env.GRACE_HOURS);
+  if (mode === "SUSPENDED" || mode === "PENDING") redirect(`${b}/suspended`);
+  if (mode === "LOCKED_OUT") {
+    if (session.role === "ADMIN") redirect(`${b}/billing`);
+    redirect(`${b}/suspended`);
+  }
 
   if (allowed && !allowed.includes(session.role)) {
     const home = HOME[session.role];

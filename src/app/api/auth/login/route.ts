@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword, signSession, setSessionCookie } from "@/core/auth";
+import { env } from "@/config/env";
+import { getAccessMode } from "@/core/subscription/access-mode";
 
 const body = z.object({
   slug: z.string().min(1),
@@ -21,7 +23,8 @@ export async function POST(req: Request) {
 
   const school = await prisma.school.findUnique({ where: { slug } });
   if (!school) return fail();
-  if (school.status !== "ACTIVE") {
+  const mode = getAccessMode(school, env.GRACE_HOURS);
+  if (mode === "SUSPENDED" || mode === "PENDING") {
     return NextResponse.json({ error: "School portal unavailable" }, { status: 403 });
   }
 
@@ -33,6 +36,12 @@ export async function POST(req: Request) {
     },
   });
   if (!user || !(await verifyPassword(password, user.passwordHash))) return fail();
+  if (mode === "LOCKED_OUT" && user.role !== "ADMIN") {
+    return NextResponse.json(
+      { error: "School subscription has expired. Contact your school administrator." },
+      { status: 403 },
+    );
+  }
 
   const now = new Date();
   await Promise.all([
