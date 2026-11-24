@@ -71,6 +71,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
   }
 
+  if (role === "STUDENT") {
+    const school = await prisma.school.findUnique({
+      where: { id: session.schoolId! },
+      select: { maxStudents: true },
+    });
+    if (school?.maxStudents != null) {
+      const current = await prisma.user.count({
+        where: { schoolId: session.schoolId!, role: "STUDENT", isActive: true },
+      });
+      if (current >= school.maxStudents) {
+        return NextResponse.json(
+          { error: `Trial limit reached: ${school.maxStudents} students. Subscribe to add more.` },
+          { status: 403 },
+        );
+      }
+    }
+  }
+
   try {
     const user = await prisma.user.create({
       data: {
