@@ -6,6 +6,32 @@ import { requireActiveSubscription } from "@/core/guard/with-subscription-guard"
 
 const CREATABLE: Role[] = ["TEACHER", "STUDENT", "PARENT", "SUPPORT_STAFF", "ACCOUNTANT"];
 
+async function studentCapResponse(schoolId: string): Promise<NextResponse | null> {
+  try {
+    const school = await prisma.school.findUnique({
+      where: { id: schoolId },
+      select: { maxStudents: true },
+    });
+    if (school?.maxStudents == null) return null;
+    const current = await prisma.user.count({
+      where: { schoolId, role: "STUDENT", isActive: true },
+    });
+    if (current >= school.maxStudents) {
+      return NextResponse.json(
+        { error: `Trial limit reached: ${school.maxStudents} students. Subscribe to add more.` },
+        { status: 403 },
+      );
+    }
+    return null;
+  } catch (e) {
+    console.error("student cap check failed", e instanceof Error ? e.message : e);
+    return NextResponse.json(
+      { error: "Could not verify the student limit, try again" },
+      { status: 503 },
+    );
+  }
+}
+
 export async function GET() {
   const guard = await requireSession(["ADMIN", "SUPPORT_STAFF"]);
   if (!guard.ok) return guard.response;
@@ -72,21 +98,8 @@ export async function POST(req: Request) {
   }
 
   if (role === "STUDENT") {
-    const school = await prisma.school.findUnique({
-      where: { id: session.schoolId! },
-      select: { maxStudents: true },
-    });
-    if (school?.maxStudents != null) {
-      const current = await prisma.user.count({
-        where: { schoolId: session.schoolId!, role: "STUDENT", isActive: true },
-      });
-      if (current >= school.maxStudents) {
-        return NextResponse.json(
-          { error: `Trial limit reached: ${school.maxStudents} students. Subscribe to add more.` },
-          { status: 403 },
-        );
-      }
-    }
+    const capBlock = await studentCapResponse(session.schoolId!);
+    if (capBlock) return capBlock;
   }
 
   try {
