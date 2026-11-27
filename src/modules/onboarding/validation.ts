@@ -20,7 +20,7 @@ export const registerSchema = z.object({
     .refine((v) => !RESERVED.has(v), "That subdomain is reserved, choose another"),
   county: z.string().trim().min(2, "County is required").max(60),
   schoolEmail: z.string().trim().toLowerCase().email("Enter a valid school email").max(120),
-  phone: z.string().trim().max(20).optional(),
+  phone: z.string().trim().regex(/^[+0-9 ()-]{9,20}$/, "Enter a valid phone number we can call"),
   stages: z.array(z.enum(STAGES)).min(1, "Select at least one school level"),
   firstName: z.string().trim().min(1, "First name is required").max(60),
   lastName: z.string().trim().min(1, "Last name is required").max(60),

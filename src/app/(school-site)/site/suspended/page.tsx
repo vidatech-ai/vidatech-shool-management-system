@@ -24,7 +24,7 @@ export default async function Page() {
     message = "Portal Suspended: Contact VidaTech Support.";
   } else if (mode === "PENDING") {
     title = "Portal not yet active";
-    message = "This portal will open once the school's subscription payment is confirmed.";
+    message = "This portal is not active yet. If you recently registered, VidaTech will call you to verify your school before it opens.";
   } else if (mode === "LOCKED_OUT") {
     title = "Subscription expired";
     message = "Access to this portal is locked. Please contact your school administrator.";

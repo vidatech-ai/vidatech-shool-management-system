@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/core/auth/guards";
 import { appendAuditLog, AuditEvents } from "@/core/audit";
+import { env } from "@/config/env";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -37,8 +38,8 @@ export async function POST(req: Request, ctx: Ctx) {
   }
   const b = (body ?? {}) as { action?: unknown; reason?: unknown };
   const action = b.action;
-  if (action !== "SUSPEND" && action !== "REACTIVATE") {
-    return NextResponse.json({ error: "Action must be SUSPEND or REACTIVATE" }, { status: 400 });
+  if (action !== "SUSPEND" && action !== "REACTIVATE" && action !== "APPROVE") {
+    return NextResponse.json({ error: "Action must be SUSPEND, REACTIVATE or APPROVE" }, { status: 400 });
   }
   const reason = typeof b.reason === "string" ? b.reason.trim() : "";
   if (action === "SUSPEND" && (reason.length < 5 || reason.length > 500)) {
@@ -57,9 +58,38 @@ export async function POST(req: Request, ctx: Ctx) {
       const outcome = await prisma.$transaction<Outcome>(async (tx) => {
         const school = await tx.school.findUnique({
           where: { id },
-          select: { id: true, status: true },
+          select: { id: true, status: true, isTrial: true },
         });
         if (!school) return { kind: "notfound" };
+
+        if (action === "APPROVE") {
+          if (school.status !== "PENDING_PAYMENT" || !school.isTrial) {
+            return { kind: "conflict", message: "Only a pending trial signup can be approved" };
+          }
+          const trialEndsAt = new Date(Date.now() + env.TRIAL_DAYS * 86_400_000);
+          const upd = await tx.school.updateMany({
+            where: { id, status: "PENDING_PAYMENT", isTrial: true },
+            data: { status: "ACTIVE", subscriptionExpiresAt: trialEndsAt },
+          });
+          if (upd.count !== 1) return { kind: "conflict", message: "School status changed, refresh and try again" };
+          await appendAuditLog(tx, {
+            schoolId: id,
+            actorId: actor.id,
+            actorRole: "MASTER_ADMIN",
+            action: AuditEvents.SCHOOL_APPROVED,
+            entityType: "School",
+            entityId: id,
+            metadata: {
+              previousStatus: "PENDING_PAYMENT",
+              newStatus: "ACTIVE",
+              trialDays: env.TRIAL_DAYS,
+              trialEndsAt: trialEndsAt.toISOString(),
+            },
+            ipAddress,
+            userAgent,
+          });
+          return { kind: "done", status: "ACTIVE" };
+        }
 
         if (action === "SUSPEND") {
           if (school.status !== "ACTIVE") {

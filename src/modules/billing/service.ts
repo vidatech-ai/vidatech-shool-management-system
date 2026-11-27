@@ -21,9 +21,12 @@ export function checkoutCallbackUrl(slug: string): string {
 export async function startCheckout(schoolId: string): Promise<{ url: string }> {
   const school = await prisma.school.findUnique({
     where: { id: schoolId },
-    select: { id: true, slug: true, email: true },
+    select: { id: true, slug: true, email: true, status: true, isTrial: true },
   });
   if (!school) throw new Error("School not found");
+  if (school.status === "PENDING_PAYMENT" && school.isTrial) {
+    throw new Error("Trial signup awaiting HQ approval");
+  }
 
   const reference = `vt-${randomUUID()}`;
   const payment = await prisma.subscriptionPayment.create({
@@ -66,7 +69,8 @@ export type ActivationResult =
   | "ACTIVATED"
   | "ALREADY_PROCESSED"
   | "UNKNOWN_REFERENCE"
-  | "MISMATCH";
+  | "MISMATCH"
+  | "AWAITING_APPROVAL";
 
 /** Call only after the webhook signature has been verified. */
 export async function activateFromCharge(c: VerifiedCharge): Promise<ActivationResult> {
@@ -85,6 +89,14 @@ export async function activateFromCharge(c: VerifiedCharge): Promise<ActivationR
           data: { status: "FAILED", rawPayload: raw },
         });
         return "MISMATCH";
+      }
+
+      const gate = await tx.school.findUnique({
+        where: { id: payment.schoolId },
+        select: { status: true, isTrial: true },
+      });
+      if (gate && gate.status === "PENDING_PAYMENT" && gate.isTrial) {
+        return "AWAITING_APPROVAL";
       }
 
       const claimed = await tx.subscriptionPayment.updateMany({

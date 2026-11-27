@@ -60,11 +60,8 @@ export default function RegisterForm() {
   if (done) {
     return (
       <div>
-        <h2 style={{ color: "#15803d" }}>Your school is ready</h2>
-        <p>Your {done.trialDays}-day free trial has started. Log in with <strong>{done.email}</strong> and the password you chose.</p>
-        <a href={done.loginPath} style={{ display: "inline-block", padding: "12px 24px", background: "#1d4ed8", color: "#fff", borderRadius: 8, textDecoration: "none", fontWeight: 600 }}>
-          Go to your school login
-        </a>
+        <h2 style={{ color: "#15803d" }}>Registration received</h2>
+        <p>Thank you. We will call you on the school phone number to verify your school. After that, your {done.trialDays}-day free trial starts and you can log in with <strong>{done.email}</strong> and the password you chose.</p>
       </div>
     );
   }
@@ -75,7 +72,7 @@ export default function RegisterForm() {
       <label style={label}>Subdomain (letters, digits, hyphens)<input name="slug" required style={field} placeholder="alliancehigh" /></label>
       <label style={label}>County<input name="county" required style={field} /></label>
       <label style={label}>School email<input name="schoolEmail" type="email" required style={field} /></label>
-      <label style={label}>School phone (optional)<input name="phone" style={field} /></label>
+      <label style={label}>School phone (we will call you to verify)<input name="phone" type="tel" required style={field} /></label>
       <fieldset style={{ marginTop: 14, border: "1px solid #e2e8f0", borderRadius: 6 }}>
         <legend style={{ fontSize: 14, fontWeight: 600 }}>School levels</legend>
         {STAGES.map(([v, t]) => (

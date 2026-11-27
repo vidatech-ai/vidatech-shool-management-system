@@ -1,17 +1,19 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { env } from "@/config/env";
 import { hashPassword } from "@/core/auth";
 import type { RegisterInput } from "./validation";
 
-const DAY_MS = 86_400_000;
 export const TRIAL_MAX_STUDENTS = 300;
 
 export type RegisterResult =
   | { ok: true; slug: string }
   | { ok: false; status: number; error: string };
 
-/** Creates the trial school and its first ADMIN in one atomic write. */
+/**
+ * Creates the trial school and its first ADMIN in one atomic write.
+ * The school starts PENDING_PAYMENT (blocked everywhere) with no expiry date.
+ * HQ approves it after a verification call, and the trial clock starts then.
+ */
 export async function registerTrialSchool(input: RegisterInput): Promise<RegisterResult> {
   const passwordHash = await hashPassword(input.password);
   try {
@@ -21,13 +23,13 @@ export async function registerTrialSchool(input: RegisterInput): Promise<Registe
         slug: input.slug,
         county: input.county,
         email: input.schoolEmail,
-        phone: input.phone ? input.phone : null,
+        phone: input.phone,
         enabledStages: input.stages,
-        status: "ACTIVE",
+        status: "PENDING_PAYMENT",
         isTrial: true,
         maxStudents: TRIAL_MAX_STUDENTS,
         smsBalance: 0,
-        subscriptionExpiresAt: new Date(Date.now() + env.TRIAL_DAYS * DAY_MS),
+        subscriptionExpiresAt: null,
         users: {
           create: {
             role: "ADMIN",

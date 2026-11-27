@@ -22,6 +22,8 @@ export default async function Page() {
         name: true,
         slug: true,
         county: true,
+        phone: true,
+        isTrial: true,
         status: true,
         lastLoginAt: true,
         subscriptionExpiresAt: true,
@@ -97,10 +99,11 @@ export default async function Page() {
                       <td>
                         <div className={s.name}>{sc.name}</div>
                         <div className={s.slug}>{sc.slug}</div>
+                        {sc.phone ? <div className={s.slug}>{sc.phone}</div> : null}
                       </td>
                       <td>{sc.county ?? "-"}</td>
                       <td>
-                        <span className={`${s.pill} ${pill}`}>{sc.status.replace("_", " ")}</span>
+                        <span className={`${s.pill} ${pill}`}>{sc.status === "PENDING_PAYMENT" && sc.isTrial ? "AWAITING APPROVAL" : sc.status.replace("_", " ")}</span>
                         {sc.status === "SUSPENDED" ? (
                           <div className={s.reason}>
                             {day(sc.suspendedAt)}: {sc.suspendedReason ?? "no reason recorded"}
@@ -114,7 +117,7 @@ export default async function Page() {
                         {day(sc.subscriptionExpiresAt)}
                       </td>
                       <td>
-                        <SchoolActions id={sc.id} name={sc.name} status={sc.status} />
+                        <SchoolActions id={sc.id} name={sc.name} status={sc.status} isTrial={sc.isTrial} phone={sc.phone} />
                       </td>
                     </tr>
                   );
