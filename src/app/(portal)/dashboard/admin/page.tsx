@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { guardDashboard } from "@/core/auth/page-guard";
 import AddUserForm from "./add-user-form";
+import UserStatusButton from "./user-status-button";
 
 const cell = { padding: "8px 10px", borderBottom: "1px solid #e2e8f0", textAlign: "left", fontSize: 14 } as const;
 
@@ -39,7 +40,7 @@ export default async function Page() {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              {["Name", "Role", "Contact", "Status", "Created"].map((h) => (
+              {["Name", "Role", "Contact", "Status", "Created", "Action"].map((h) => (
                 <th key={h} style={{ ...cell, fontWeight: 600, background: "#f8fafc" }}>{h}</th>
               ))}
             </tr>
@@ -54,6 +55,9 @@ export default async function Page() {
                   {u.isActive ? "Active" : "Inactive"}
                 </td>
                 <td style={cell}>{u.createdAt.toISOString().slice(0, 10)}</td>
+                <td style={cell}>
+                  {u.role === "ADMIN" || u.id === session.userId ? "-" : <UserStatusButton userId={u.id} isActive={u.isActive} />}
+                </td>
               </tr>
             ))}
           </tbody>
