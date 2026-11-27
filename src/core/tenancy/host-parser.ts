@@ -4,8 +4,8 @@ export type Target =
   | { kind: "pass" }
   | { kind: "school"; slug: string; path: string };
 
-const SLUG = /^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/;
-const RESERVED = new Set(["www", "hq", "api", "app", "admin"]);
+export const SLUG = /^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/;
+export const RESERVED = new Set(["www", "hq", "api", "app", "admin"]);
 
 function toSchoolPath(rest: string): string {
   if (rest === "" || rest === "/") return "/site";

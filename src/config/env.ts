@@ -16,6 +16,7 @@ const envSchema = z.object({
   SUBSCRIPTION_DAYS: z.coerce.number().int().positive().default(120),
   SUBSCRIPTION_PRICE_KES: z.coerce.number().int().positive().default(4500),
   GRACE_HOURS: z.coerce.number().int().positive().default(48),
+  TRIAL_DAYS: z.coerce.number().int().positive().default(30),
 });
 
 const parsed = envSchema.safeParse(process.env);
