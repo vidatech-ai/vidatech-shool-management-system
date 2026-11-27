@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     where: {
       schoolId: school.id,
       isActive: true,
-      OR: [{ email: identifier }, { phone: identifier }, { admissionNumber: identifier }],
+      OR: [{ email: { equals: identifier.trim(), mode: "insensitive" } }, { phone: identifier.trim() }, { admissionNumber: identifier.trim() }],
     },
   });
   if (!user || !(await verifyPassword(password, user.passwordHash))) return fail();
