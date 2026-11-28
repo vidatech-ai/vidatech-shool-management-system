@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { guardHq } from "@/core/auth/hq-guard";
 import styles from "../hq.module.css";
+import HqNav from "../hq-nav";
 
 export default async function Page() {
   await guardHq();
@@ -10,11 +10,7 @@ export default async function Page() {
         <div className={styles.top}>
           <span className={styles.brand}>VidaTech HQ</span>
         </div>
-        <nav className={styles.nav}>
-          <Link href="/hq">Dashboard</Link>
-          <Link href="/hq/schools">Schools</Link>
-          <Link href="/hq/payments">Payments</Link>
-        </nav>
+        <HqNav />
         <h1 className={styles.title}>Payments</h1>
         <p className={styles.note}>The Paystack revenue ledger is built after the school directory.</p>
       </div>

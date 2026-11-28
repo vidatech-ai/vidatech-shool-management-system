@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { guardHq } from "@/core/auth/hq-guard";
 import hq from "../hq.module.css";
+import HqNav from "../hq-nav";
 import s from "./schools.module.css";
 import SchoolActions from "./school-actions";
 
@@ -55,11 +55,7 @@ export default async function Page() {
         <div className={hq.top}>
           <span className={hq.brand}>VidaTech HQ</span>
         </div>
-        <nav className={hq.nav}>
-          <Link href="/hq">Dashboard</Link>
-          <Link href="/hq/schools">Schools</Link>
-          <Link href="/hq/payments">Payments</Link>
-        </nav>
+        <HqNav />
         <h1 className={hq.title}>Schools</h1>
 
         <div className={s.tableWrap}>

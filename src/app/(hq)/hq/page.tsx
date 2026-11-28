@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { guardHq } from "@/core/auth/hq-guard";
 import styles from "./hq.module.css";
+import HqNav from "./hq-nav";
 
 export default async function Page() {
   const { user } = await guardHq();
@@ -21,11 +21,7 @@ export default async function Page() {
             {user.firstName} {user.lastName} ({user.email})
           </span>
         </div>
-        <nav className={styles.nav}>
-          <Link href="/hq">Dashboard</Link>
-          <Link href="/hq/schools">Schools</Link>
-          <Link href="/hq/payments">Payments</Link>
-        </nav>
+        <HqNav />
         <h1 className={styles.title}>Platform overview</h1>
         <div className={styles.grid}>
           <div className={styles.stat}>

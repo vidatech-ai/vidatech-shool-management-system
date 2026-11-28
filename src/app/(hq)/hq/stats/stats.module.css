@@ -1,0 +1,49 @@
+.panel {
+  padding: 20px; margin: 18px 0; border-radius: 18px;
+  background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(34, 211, 238, 0.25);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+.panelTitle { margin: 0 0 14px; font-size: 16px; font-weight: 600; color: #a5f3fc; }
+.form { display: grid; gap: 14px; }
+.fields { display: grid; grid-template-columns: 180px 1fr; gap: 12px; }
+.field {
+  min-width: 0; display: grid; gap: 6px; font-size: 12px; font-weight: 600;
+  letter-spacing: 0.04em; text-transform: uppercase; color: #a5f3fc;
+}
+.input {
+  width: 100%; min-width: 0; box-sizing: border-box;
+  height: 40px; padding: 0 12px; border-radius: 10px; font-family: inherit; font-size: 14px;
+  color: #fff; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.input:focus { outline: 2px solid #22d3ee; outline-offset: 1px; }
+.picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 8px; }
+.iconBtn {
+  height: 44px; display: grid; place-items: center; border-radius: 10px; color: #fff; cursor: pointer;
+  background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: background 0.15s, border-color 0.15s;
+}
+.iconBtn:hover { background: rgba(34, 211, 238, 0.18); }
+.iconBtnOn { background: rgba(34, 211, 238, 0.28); border-color: #22d3ee; color: #67e8f9; }
+.formActions { display: flex; gap: 10px; flex-wrap: wrap; }
+.list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.list .panel { margin: 0; }
+.row {
+  display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(34, 211, 238, 0.25);
+}
+.rowIcon {
+  flex: none; width: 42px; height: 42px; display: grid; place-items: center;
+  border-radius: 12px; color: #67e8f9; background: rgba(34, 211, 238, 0.15);
+}
+.rowText { flex: 1; min-width: 0; }
+.rowValue { font-size: 20px; font-weight: 700; overflow-wrap: anywhere; }
+.rowLabel { font-size: 13px; opacity: 0.8; overflow-wrap: anywhere; }
+.rowActions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.rowActions button { height: 32px; padding: 0 12px; font-size: 13px; }
+.rowActions .arrow { width: 32px; padding: 0; display: grid; place-items: center; }
+.empty { text-align: center; padding: 30px 16px; opacity: 0.75; }
+@media (max-width: 560px) {
+  .fields { grid-template-columns: 1fr; }
+  .row { flex-wrap: wrap; }
+  .rowActions { width: 100%; justify-content: flex-start; }
+}
